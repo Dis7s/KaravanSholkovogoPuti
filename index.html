@@ -1,0 +1,670 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Караван Шёлкового пути</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;700&family=Yeseva+One&display=swap">
+<style>
+/* Layout: a lapis-tiled Samarkand courtyard framing one parchment panel at a time — the route map, then each city's challenge */
+:root{
+  --lapis:#12284A; --lapis-2:#1B3A68; --lapis-3:#2A5290;
+  --turq:#38B2AC; --gold:#E7B53C; --gold-d:#8A6210;
+  --parch:#F4E8CB; --parch-2:#E8D6AB; --parch-3:#D9C08A;
+  --ink:#2A1C0C; --ink-2:#5B4528;
+  --ok:#1E6E47; --ok-bg:#D5EEDD; --bad:#A3321E; --bad-bg:#F6D6CC;
+  --white:#FBF6EA;
+  --f-display:'Yeseva One', Georgia, 'Times New Roman', serif;
+  --f-body:'Rubik', 'Segoe UI', Arial, sans-serif;
+  color-scheme: dark;
+}
+*{box-sizing:border-box}
+body{
+  background-color:var(--lapis);
+  background-image:
+    radial-gradient(circle at 50% 50%, rgba(56,178,172,.13) 0 14%, transparent 15%),
+    conic-gradient(from 45deg at 50% 50%, rgba(231,181,60,.07) 0 25%, transparent 0 50%, rgba(231,181,60,.07) 0 75%, transparent 0);
+  background-size:56px 56px;
+  color:var(--white); font-family:var(--f-body); font-size:17px; line-height:1.5;
+  padding-left:max(16px, env(safe-area-inset-left, 0px));
+  padding-right:max(16px, env(safe-area-inset-right, 0px));
+  padding-block:16px 40px;
+}
+.wrap{max-width:1080px;margin:0 auto;display:flex;flex-direction:column;gap:16px}
+header.top{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px 20px}
+.brand{display:flex;flex-direction:column;gap:2px;min-width:0}
+.brand h1{font-family:var(--f-display);font-weight:400;color:var(--gold);font-size:clamp(26px,4vw,40px);line-height:1.1;margin:0;text-wrap:balance}
+.brand p{margin:0;color:#C9D6EC;font-size:15px}
+.tools{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.coins{display:flex;align-items:center;gap:8px;background:var(--lapis-2);border:2px solid var(--gold);border-radius:999px;padding:6px 16px 6px 8px;font-weight:700;font-size:20px;color:var(--gold);font-variant-numeric:tabular-nums}
+.coins svg{width:30px;height:30px}
+.coins.bump{animation:bump .5s ease}
+@keyframes bump{40%{transform:scale(1.15)}}
+.seg{display:flex;border:2px solid #5D7DB3;border-radius:999px;overflow:hidden}
+.seg button{background:transparent;color:#C9D6EC;border:0;padding:8px 14px;font:600 15px var(--f-body);cursor:pointer;min-height:40px}
+.seg button[aria-pressed="true"]{background:var(--gold);color:var(--ink)}
+.icon-btn{background:transparent;border:2px solid #5D7DB3;color:#C9D6EC;border-radius:999px;min-height:40px;padding:6px 14px;font:600 15px var(--f-body);cursor:pointer}
+button:focus-visible{outline:3px solid var(--turq);outline-offset:2px}
+
+.panel{background:var(--parch);color:var(--ink);border-radius:20px;padding:clamp(18px,3vw,32px);
+  box-shadow:0 0 0 4px var(--lapis),0 0 0 7px var(--gold),0 18px 40px rgba(0,0,0,.35);display:flex;flex-direction:column;gap:18px}
+.eyebrow{margin:0;font-size:14px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--gold-d)}
+.panel h2{font-family:var(--f-display);font-weight:400;font-size:clamp(28px,4.4vw,44px);line-height:1.1;margin:0;text-wrap:balance}
+.tag{margin:0;font-size:17px;color:var(--ink-2);font-style:italic}
+.intro{margin:0;font-size:clamp(17px,2vw,20px);max-width:62ch}
+.howto{margin:0;background:var(--parch-2);border-left:6px solid var(--turq);padding:12px 16px;border-radius:8px;font-size:17px}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:10px;min-height:52px;padding:10px 26px;border-radius:999px;border:0;cursor:pointer;
+  font:700 18px var(--f-body);background:var(--lapis-2);color:var(--white);align-self:flex-start}
+.btn:hover{background:var(--lapis-3)}
+.btn.gold{background:var(--gold);color:var(--ink)}
+.btn.gold:hover{background:#F2C657}
+.btn[disabled]{opacity:.45;cursor:not-allowed}
+.row{display:flex;flex-wrap:wrap;gap:12px;align-items:center}
+
+/* start */
+.start{display:grid;grid-template-columns:1.1fr .9fr;gap:24px;align-items:center}
+.start > *{min-width:0}
+.start .art{background:var(--lapis-2);border-radius:16px;padding:12px}
+@media (max-width:760px){.start{grid-template-columns:1fr}}
+
+/* map */
+.mapbox{background:var(--parch-2);border-radius:14px;padding:6px;overflow:hidden}
+.mapbox svg{display:block;width:100%;height:auto}
+.city{cursor:pointer}
+.city[aria-disabled="true"]{cursor:default}
+.city .halo{transform-box:fill-box;transform-origin:center;animation:pulse 1.6s ease-in-out infinite}
+@keyframes pulse{0%,100%{transform:scale(1);opacity:.85}50%{transform:scale(1.35);opacity:.25}}
+.city:focus-visible{outline:none}
+.city:focus-visible .ring{stroke:var(--turq);stroke-width:6}
+#caravan{transition:transform .9s cubic-bezier(.6,.05,.3,1)}
+.stops{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+@media (max-width:640px){.stops{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.stop{display:flex;align-items:center;gap:10px;text-align:left;background:var(--parch);border:2px solid var(--parch-3);border-radius:12px;padding:10px 12px;font:500 16px var(--f-body);color:var(--ink);cursor:pointer;min-height:56px}
+.stop .n{flex:none;width:30px;height:30px;border-radius:50%;display:grid;place-items:center;font-weight:700;background:var(--parch-3);color:var(--ink)}
+.stop.next{border-color:var(--gold-d);background:#FFF4D6}
+.stop.next .n{background:var(--gold)}
+.stop.done .n{background:var(--turq);color:var(--ink)}
+.stop[disabled]{opacity:.55;cursor:default}
+.stop small{display:block;color:var(--ink-2);font-size:13px}
+
+/* challenge parts */
+.opts{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+@media (max-width:640px){.opts{grid-template-columns:1fr}}
+.opt{display:flex;align-items:center;gap:10px;text-align:left;min-height:58px;padding:12px 16px;border-radius:12px;border:2px solid var(--parch-3);
+  background:#FFF9EA;color:var(--ink);font:500 18px var(--f-body);cursor:pointer}
+.opt:hover:not([disabled]){border-color:var(--lapis-3)}
+.opt.sel{border-color:var(--lapis-2);background:#DCE6F7;box-shadow:inset 0 0 0 2px var(--lapis-2)}
+.opt.ok{background:var(--ok-bg);border-color:var(--ok);color:var(--ok);font-weight:700}
+.opt.bad{background:var(--bad-bg);border-color:var(--bad);color:var(--bad)}
+.opt[disabled]{cursor:default}
+.mark{flex:none;width:22px;height:22px}
+.shake{animation:shake .4s}
+@keyframes shake{20%,60%{transform:translateX(-6px)}40%,80%{transform:translateX(6px)}}
+.q{margin:0;font-size:clamp(20px,2.6vw,26px);font-weight:500;max-width:60ch}
+.qcount{margin:0;font-size:15px;color:var(--ink-2);font-variant-numeric:tabular-nums}
+.feedback{border-radius:12px;padding:12px 16px;font-size:17px;margin:0}
+.feedback.ok{background:var(--ok-bg);color:var(--ok)}
+.feedback.bad{background:var(--bad-bg);color:var(--bad)}
+.feedback b{display:block}
+
+.chron{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px}
+.chron li{display:flex;gap:14px;align-items:center;background:var(--ok-bg);border:2px solid var(--ok);border-radius:12px;padding:10px 14px;color:var(--ink);font-size:17px}
+.chron .date{flex:none;font-family:var(--f-display);font-size:22px;color:var(--ok);min-width:96px}
+.chron .empty{background:transparent;border:2px dashed var(--parch-3);color:var(--ink-2)}
+.label{margin:0;font-weight:700;font-size:15px;color:var(--ink-2);letter-spacing:.06em;text-transform:uppercase}
+
+.match{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.match > div{display:flex;flex-direction:column;gap:10px;min-width:0}
+
+.scroll{background:#FFF9EA;border:2px solid var(--parch-3);border-radius:14px;padding:18px 20px;display:flex;flex-direction:column;gap:6px}
+.scroll .who{margin:0;font-size:14px;font-weight:700;color:var(--lapis-2);text-transform:uppercase;letter-spacing:.08em}
+.scroll .claim{margin:0;font-size:clamp(20px,2.6vw,26px);font-weight:500}
+.tv{display:flex;flex-wrap:wrap;gap:12px}
+.tv .btn{align-self:auto;min-width:170px}
+.btn.trust{background:var(--ok);color:#fff}
+.btn.verify{background:var(--bad);color:#fff}
+
+.result{background:var(--lapis-2);color:var(--white);border-radius:16px;padding:20px;display:flex;flex-direction:column;gap:10px}
+.result .earned{margin:0;font-family:var(--f-display);font-size:28px;color:var(--gold)}
+.result p{margin:0}
+.fact{color:#DCE6F7}
+
+/* end */
+.end{align-items:flex-start}
+.big{font-family:var(--f-display);font-size:clamp(56px,10vw,96px);line-height:1;color:var(--gold-d);margin:0;font-variant-numeric:tabular-nums}
+.rank{font-size:24px;font-weight:700;margin:0}
+.motto{font-family:var(--f-display);font-size:clamp(30px,5vw,48px);color:var(--lapis-2);margin:0}
+
+footer{color:#AFC0DD;font-size:14px;text-align:center}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+
+<div class="wrap">
+  <header class="top">
+    <div class="brand">
+      <h1 id="title">Караван Шёлкового пути</h1>
+      <p id="subtitle"></p>
+    </div>
+    <div class="tools">
+      <div class="coins" id="coins" aria-live="polite">
+        <svg viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="20" r="18" fill="#E7B53C" stroke="#8A6210" stroke-width="3"/><rect x="14" y="14" width="12" height="12" fill="#1B3A68" stroke="#8A6210" stroke-width="2"/></svg>
+        <span id="coinNum">0</span>
+      </div>
+      <div class="seg" role="group" aria-label="Language">
+        <button id="lang-ru" type="button" aria-pressed="true">RU</button>
+        <button id="lang-en" type="button" aria-pressed="false">EN</button>
+      </div>
+      <button class="icon-btn" id="soundBtn" type="button"></button>
+      <button class="icon-btn" id="restartBtn" type="button"></button>
+    </div>
+  </header>
+  <main id="main"></main>
+  <footer id="foot"></footer>
+</div>
+
+<script>
+const UI = {
+  subtitle:{en:"A history game about the Turkic Khaganate · Grade 7",ru:"Историческая игра о Тюркском каганате · 7 класс"},
+  title:{en:"Silk Road Caravan",ru:"Караван Шёлкового пути"},
+  startEyebrow:{en:"6th–7th centuries",ru:"VI–VII века"},
+  startTitle:{en:"Lead your caravan across the Khaganate",ru:"Проведи караван через весь каганат"},
+  startIntro:{en:"You are a Sogdian merchant. Lead your caravan along the Great Silk Road from Suyab to Khorezm. In every city you must pass a challenge to earn gold coins.",
+              ru:"Ты — согдийский купец. Проведи свой караван по Великому шёлковому пути от Суяба до Хорезма. В каждом городе нужно пройти испытание, чтобы заработать золотые монеты."},
+  howto:{en:"How to play: click the glowing city on the map, complete its challenge and collect coins.",ru:"Как играть: нажми на светящийся город на карте, пройди испытание и собирай монеты."},
+  start:{en:"Start the journey",ru:"Отправиться в путь"},
+  mapEyebrow:{en:"The route",ru:"Маршрут"},
+  mapTitle:{en:"Choose the next city",ru:"Выбери следующий город"},
+  mapDone:{en:"All cities visited!",ru:"Все города пройдены!"},
+  mapNote:{en:"Schematic map, not to scale",ru:"Схематичная карта, без масштаба"},
+  station:{en:"City",ru:"Город"},
+  locked:{en:"Locked",ru:"Закрыт"},
+  next:{en:"Next stop",ru:"Следующий"},
+  done:{en:"Done",ru:"Пройден"},
+  backMap:{en:"Back to the map",ru:"Вернуться на карту"},
+  finish:{en:"Finish the journey",ru:"Завершить путешествие"},
+  nextQ:{en:"Next",ru:"Дальше"},
+  check:{en:"Check",ru:"Проверить"},
+  correct:{en:"Correct!",ru:"Верно!"},
+  wrong:{en:"Not quite.",ru:"Не совсем."},
+  earned:{en:"Coins earned:",ru:"Получено монет:"},
+  question:{en:"Question",ru:"Вопрос"},
+  riddle:{en:"Riddle",ru:"Загадка"},
+  claimN:{en:"Fact",ru:"Факт"},
+  chronicle:{en:"The chronicle",ru:"Летопись"},
+  scrolls:{en:"Mixed-up scrolls — tap the earliest event",ru:"Перепутанные свитки — нажми на самое раннее событие"},
+  emptySlot:{en:"…",ru:"…"},
+  regions:{en:"Regions",ru:"Области"},
+  titles:{en:"Rulers’ titles",ru:"Титулы правителей"},
+  matchHint:{en:"Tap a region, then tap the title of its ruler.",ru:"Нажми на область, а потом на титул её правителя."},
+  chooseAll:{en:"Choose all the correct answers",ru:"Выбери все верные ответы"},
+  aiSays:{en:"The AI assistant says:",ru:"ИИ-помощник говорит:"},
+  trust:{en:"Trust",ru:"Доверяю"},
+  verify:{en:"Verify",ru:"Проверю"},
+  trustOk:{en:"Right — this fact is true.",ru:"Правильно — этот факт верный."},
+  verifyOk:{en:"Well done — the AI made a mistake here!",ru:"Молодец — здесь ИИ ошибся!"},
+  trustBad:{en:"Careful — the AI made a mistake here!",ru:"Осторожно — здесь ИИ ошибся!"},
+  verifyBad:{en:"This one was actually true.",ru:"А этот факт был верным."},
+  endEyebrow:{en:"Journey complete",ru:"Путешествие окончено"},
+  endTitle:{en:"Your caravan has reached Khorezm!",ru:"Твой караван добрался до Хорезма!"},
+  outOf:{en:"coins out of",ru:"монет из"},
+  motto:{en:"Trust, but verify!",ru:"Доверяй, но проверяй!"},
+  playAgain:{en:"Play again",ru:"Играть снова"},
+  soundOn:{en:"Sound: on",ru:"Звук: вкл"},
+  soundOff:{en:"Sound: off",ru:"Звук: выкл"},
+  restart:{en:"Restart",ru:"Заново"},
+  foot:{en:"Facts are taken from the Grade 7 history textbook, Topics 8–13. Found a mistake? Verify it with your history teacher!",
+        ru:"Факты взяты из учебника истории для 7 класса, темы 8–13. Нашли ошибку? Проверьте вместе с учителем истории!"},
+  ranks:[
+    {min:240,en:"Great Caravan Master",ru:"Великий караван-баши"},
+    {min:160,en:"Experienced Merchant",ru:"Опытный купец"},
+    {min:0,en:"Young Traveller",ru:"Юный путешественник"}
+  ],
+  geo:{aral:{en:"Aral Sea",ru:"Аральское море"},amu:{en:"Amu Darya",ru:"Амударья"},syr:{en:"Syr Darya",ru:"Сырдарья"},tian:{en:"Tian Shan",ru:"Тянь-Шань"},pamir:{en:"Pamir",ru:"Памир"}}
+};
+
+const ST = [
+  { id:"suyab", x:880, y:150, type:"timeline",
+    name:{en:"Suyab",ru:"Суяб"},
+    tag:{en:"A centre of the Western Turkic Khaganate",ru:"Центр Западного тюркского каганата"},
+    intro:{en:"The chronicler of Suyab has mixed up his scrolls. Tap the events in the right order, from the earliest to the latest.",
+           ru:"Летописец Суяба перепутал свои свитки. Нажимай на события по порядку — от самого раннего к самому позднему."},
+    items:[
+      {date:"552", en:"Bumin defeats the Rouran and founds the Turkic Khaganate", ru:"Бумын побеждает жужаней и основывает Тюркский каганат"},
+      {date:"563–567", en:"The Turks and Iran defeat the Hephthalites", ru:"Тюрки вместе с Ираном разгромили эфталитов"},
+      {date:"603", en:"The Khaganate splits into Eastern and Western parts", ru:"Каганат распадается на Восточный и Западный"},
+      {date:"618–630", en:"Tun Yabgu Kagan rules and carries out reforms", ru:"Правление и реформы Тун Ябгу-кагана"}
+    ],
+    fact:{en:"Suyab, in Semirechye, was one of the main centres of the Western Turkic Khaganate.",ru:"Суяб в Семиречье был одним из главных центров Западного тюркского каганата."}
+  },
+  { id:"fergana", x:720, y:330, type:"mc",
+    name:{en:"Fergana",ru:"Фергана"},
+    tag:{en:"The land of “heavenly” horses",ru:"Страна «небесных» коней"},
+    intro:{en:"The horse traders of Fergana will sell you fast horses, but only if you answer their questions.",
+           ru:"Торговцы Ферганы продадут тебе быстрых коней, но только если ты ответишь на их вопросы."},
+    qs:[
+      {q:{en:"Where did the ancient Turks first live?",ru:"Где первоначально жили древние тюрки?"},
+       o:[{en:"In the Altai Mountains",ru:"В горах Алтая"},{en:"On the Arabian Peninsula",ru:"На Аравийском полуострове"},{en:"In the Caucasus",ru:"На Кавказе"},{en:"In Crimea",ru:"В Крыму"}], a:0,
+       e:{en:"The Turks lived in the Altai Mountains and Southern Siberia.",ru:"Тюрки жили на Алтае и в Южной Сибири."}},
+      {q:{en:"What was the title of the supreme ruler of the Turks?",ru:"Как назывался верховный правитель тюрков?"},
+       o:[{en:"Pharaoh",ru:"Фараон"},{en:"Kagan",ru:"Каган"},{en:"Sultan",ru:"Султан"},{en:"Consul",ru:"Консул"}], a:1,
+       e:{en:"The kagan was the supreme ruler of the Khaganate.",ru:"Каган — верховный правитель каганата."}},
+      {q:{en:"Fergana was famous in China for its…",ru:"Фергана славилась в Китае своими…"},
+       o:[{en:"Porcelain",ru:"Фарфором"},{en:"Tea",ru:"Чаем"},{en:"“Heavenly” horses",ru:"«Небесными» конями"},{en:"Paper",ru:"Бумагой"}], a:2,
+       e:{en:"Chinese sources called the fast Fergana horses “heavenly horses”.",ru:"Китайские источники называли быстрых ферганских скакунов «небесными конями»."}},
+      {q:{en:"Who led the Turks in the west and, together with Iran, defeated the Hephthalites?",ru:"Кто возглавлял тюрков на западе и вместе с Ираном разгромил эфталитов?"},
+       o:[{en:"Mahmud Kashgari",ru:"Махмуд Кашгари"},{en:"Varkhuman",ru:"Вархуман"},{en:"Tun Yabgu",ru:"Тун Ябгу"},{en:"Istemi",ru:"Истеми"}], a:3,
+       e:{en:"Istemi, Bumin’s brother, ruled the western lands of the Khaganate.",ru:"Истеми, брат Бумына, правил западными землями каганата."}}
+    ],
+    fact:{en:"Fergana horses were so valued that the Chinese called them “heavenly”.",ru:"Ферганских коней ценили так высоко, что китайцы называли их «небесными»."}
+  },
+  { id:"chach", x:570, y:225, type:"match",
+    name:{en:"Chach",ru:"Чач"},
+    tag:{en:"The Tashkent oasis, city of coins",ru:"Ташкентский оазис, город монет"},
+    intro:{en:"Tun Yabgu Kagan sent officials called tudun to local rulers to control the collection of taxes. Now you are a tudun! Match each region with the title of its ruler.",
+           ru:"Тун Ябгу-каган направлял к местным правителям чиновников — тудунов, которые следили за сбором налогов. Теперь ты тудун! Соедини каждую область с титулом её правителя."},
+    pairs:[
+      {r:{en:"Sogd (Samarkand)",ru:"Согд (Самарканд)"}, t:{en:"ikhshid",ru:"ихшид"}},
+      {r:{en:"Bukhara",ru:"Бухара"}, t:{en:"bukhar-khudat",ru:"бухар-худат"}},
+      {r:{en:"Ustrushana",ru:"Уструшана"}, t:{en:"afshin",ru:"афшин"}},
+      {r:{en:"Khorezm",ru:"Хорезм"}, t:{en:"khorezmshah",ru:"хорезмшах"}},
+      {r:{en:"Tokharistan",ru:"Тохаристан"}, t:{en:"yabgu",ru:"ябгу"}}
+    ],
+    fact:{en:"In the 6th–8th centuries Chach minted its own coins.",ru:"В VI–VIII веках в Чаче чеканили собственные монеты."}
+  },
+  { id:"samarkand", x:450, y:350, type:"mc",
+    name:{en:"Samarkand",ru:"Самарканд"},
+    tag:{en:"The pearl of Sogd",ru:"Жемчужина Согда"},
+    intro:{en:"The wise men of Samarkand ask riddles. Read each riddle and choose who or what it is about.",
+           ru:"Мудрецы Самарканда загадывают загадки. Прочитай загадку и выбери, о ком или о чём она."},
+    riddle:true,
+    pool:[{en:"Tengri",ru:"Тенгри"},{en:"Umay",ru:"Умай"},{en:"Yer-Sub",ru:"Йер-Суб"},{en:"Afrasiab",ru:"Афрасиаб"},{en:"The Sogdians",ru:"Согдийцы"},{en:"Mahmud Kashgari",ru:"Махмуд Кашгари"}],
+    qs:[
+      {q:{en:"“I am the god of the Eternal Blue Sky, the main god of the ancient Turks.”",ru:"«Я — бог Вечного Синего Неба, главный бог древних тюрков»."}, a:0,
+       e:{en:"Tengri was the supreme sky god of the Turks.",ru:"Тенгри — верховный бог неба у тюрков."}},
+      {q:{en:"“I am a goddess who protects children, mothers and the family hearth.”",ru:"«Я — богиня, которая охраняет детей, матерей и домашний очаг»."}, a:1,
+       e:{en:"Umay was the goddess of fertility and the protector of children.",ru:"Умай — богиня плодородия и покровительница детей."}},
+      {q:{en:"“I am an ancient site in Samarkand. My wall paintings show ambassadors visiting King Varkhuman.”",ru:"«Я — древнее городище в Самарканде. Мои настенные росписи показывают послов у царя Вархумана»."}, a:3,
+       e:{en:"The Afrasiab paintings date from the 7th century.",ru:"Росписи Афрасиаба относятся к VII веку."}},
+      {q:{en:"“We were famous merchants of the Great Silk Road. Our language was used in trade all the way to China.”",ru:"«Мы — знаменитые купцы Великого шёлкового пути. Наш язык использовали в торговле вплоть до Китая»."}, a:4,
+       e:{en:"Sogdian merchants were the main traders of the Silk Road.",ru:"Согдийские купцы были главными торговцами Шёлкового пути."}},
+      {q:{en:"“In the 11th century I wrote “Divan Lughat al-Turk”, a dictionary of the Turkic languages.”",ru:"«В XI веке я написал „Диван лугат ат-тюрк“ — словарь тюркских языков»."}, a:5,
+       e:{en:"Mahmud Kashgari’s book is an important source about the Turks.",ru:"Книга Махмуда Кашгари — важный источник о тюрках."}}
+    ],
+    fact:{en:"The Afrasiab paintings in Samarkand show ambassadors from many countries.",ru:"Росписи Афрасиаба в Самарканде изображают послов из многих стран."}
+  },
+  { id:"bukhara", x:340, y:330, type:"multi",
+    name:{en:"Bukhara",ru:"Бухара"},
+    tag:{en:"The city of the bukhar-khudats",ru:"Город бухар-худатов"},
+    intro:{en:"Travellers of many faiths meet in the caravanserai of Bukhara. Which religions did people follow in the time of the Turkic Khaganate?",
+           ru:"В караван-сарае Бухары встречаются путники разных вер. Какие религии были распространены во времена Тюркского каганата?"},
+    opts:[
+      {t:{en:"Tengrianism",ru:"Тенгрианство"},ok:true},
+      {t:{en:"Norse gods of the Vikings",ru:"Боги викингов"},ok:false},
+      {t:{en:"Zoroastrianism",ru:"Зороастризм"},ok:true},
+      {t:{en:"Buddhism",ru:"Буддизм"},ok:true},
+      {t:{en:"Aztec religion",ru:"Религия ацтеков"},ok:false},
+      {t:{en:"Christianity",ru:"Христианство"},ok:true},
+      {t:{en:"Manichaeism",ru:"Манихейство"},ok:true}
+    ],
+    fact:{en:"Along the Silk Road, people of different religions lived side by side.",ru:"Вдоль Шёлкового пути люди разных религий жили бок о бок."}
+  },
+  { id:"khorezm", x:215, y:235, type:"trust",
+    name:{en:"Khorezm",ru:"Хорезм"},
+    tag:{en:"The last stop",ru:"Последняя остановка"},
+    intro:{en:"Before you reach Khorezm, an AI assistant gives you a scroll of “facts”. Some are true and some are wrong. Will you trust or verify?",
+           ru:"Перед Хорезмом ИИ-помощник даёт тебе свиток «фактов». Некоторые верны, а некоторые — нет. Доверишься или проверишь?"},
+    claims:[
+      {c:{en:"The Turkic Khaganate was founded in 552.",ru:"Тюркский каганат был основан в 552 году."}, ok:true,
+       e:{en:"The textbook confirms this date.",ru:"Учебник подтверждает эту дату."}},
+      {c:{en:"Tengri was the god of the sea.",ru:"Тенгри был богом моря."}, ok:false,
+       e:{en:"Tengri was the god of the sky.",ru:"Тенгри — бог неба."}},
+      {c:{en:"Sogdian merchants traded along the Great Silk Road.",ru:"Согдийские купцы торговали на Великом шёлковом пути."}, ok:true,
+       e:{en:"Sogdians were the main merchants of the Silk Road.",ru:"Согдийцы были главными купцами Шёлкового пути."}},
+      {c:{en:"The ruler of Bukhara had the title khorezmshah.",ru:"Правитель Бухары носил титул хорезмшах."}, ok:false,
+       e:{en:"The ruler of Bukhara was the bukhar-khudat. The khorezmshah ruled Khorezm.",ru:"Правителем Бухары был бухар-худат. Хорезмшах правил Хорезмом."}},
+      {c:{en:"The ancient Turks had no writing system.",ru:"У древних тюрков не было письменности."}, ok:false,
+       e:{en:"The Turks used a runic script, known from the Orkhon-Yenisei inscriptions.",ru:"Тюрки пользовались рунической письменностью — она известна по орхоно-енисейским надписям."}},
+      {c:{en:"In 603 the Khaganate split into the Eastern and Western Khaganates.",ru:"В 603 году каганат распался на Восточный и Западный."}, ok:true,
+       e:{en:"This is correct.",ru:"Это верно."}}
+    ],
+    fact:{en:"AI can be a useful helper, but every fact needs checking in a reliable source.",ru:"ИИ может быть полезным помощником, но каждый факт нужно проверять по надёжному источнику."}
+  }
+];
+const MAX = 40+40+50+50+50+60;
+
+const S = {lang:"ru", coins:0, done:[], screen:"start", st:null, sound:true};
+const t = o => (o && typeof o === "object" && !Array.isArray(o)) ? (o[S.lang] !== undefined ? o[S.lang] : o.en) : o;
+const $ = s => document.querySelector(s);
+const main = $("#main");
+const shuffle = a => { const r=a.slice(); for(let i=r.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[r[i],r[j]]=[r[j],r[i]];} return r; };
+const ICON_OK = '<svg class="mark" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="11" fill="currentColor"/><path d="M6.5 12.5l3.5 3.5 7.5-8" fill="none" stroke="#fff" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+const ICON_BAD = '<svg class="mark" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="11" fill="currentColor"/><path d="M8 8l8 8M16 8l-8 8" fill="none" stroke="#fff" stroke-width="2.6" stroke-linecap="round"/></svg>';
+
+/* sound */
+let ac=null;
+function tone(kind){
+  if(!S.sound) return;
+  try{
+    ac = ac || new (window.AudioContext||window.webkitAudioContext)();
+    const seq = kind==="ok" ? [660,880] : kind==="win" ? [523,659,784,1046] : [220,180];
+    seq.forEach((f,i)=>{
+      const o=ac.createOscillator(), g=ac.createGain();
+      o.type = kind==="bad" ? "sawtooth" : "triangle"; o.frequency.value=f;
+      const t0=ac.currentTime+i*0.11;
+      g.gain.setValueAtTime(0.0001,t0); g.gain.exponentialRampToValueAtTime(0.15,t0+0.02); g.gain.exponentialRampToValueAtTime(0.0001,t0+0.18);
+      o.connect(g).connect(ac.destination); o.start(t0); o.stop(t0+0.2);
+    });
+  }catch(e){}
+}
+
+function chrome(){
+  document.documentElement.lang = S.lang;
+  $("#title").textContent = t(UI.title);
+  $("#subtitle").textContent = t(UI.subtitle);
+  $("#coinNum").textContent = S.coins;
+  $("#lang-en").setAttribute("aria-pressed", S.lang==="en");
+  $("#lang-ru").setAttribute("aria-pressed", S.lang==="ru");
+  $("#soundBtn").textContent = t(S.sound?UI.soundOn:UI.soundOff);
+  $("#restartBtn").textContent = t(UI.restart);
+  $("#foot").textContent = t(UI.foot);
+  document.title = t(UI.title);
+}
+function bumpCoins(){ const c=$("#coins"); c.classList.remove("bump"); void c.offsetWidth; c.classList.add("bump"); }
+
+function render(){
+  chrome();
+  if(S.screen==="start") return renderStart();
+  if(S.screen==="map") return renderMap();
+  if(S.screen==="station") return renderStation();
+  if(S.screen==="end") return renderEnd();
+}
+
+/* ---------- map svg ---------- */
+function mapSVG(interactive){
+  const next = S.done.length;
+  const pts = ST.map(s=>[s.x,s.y]);
+  const route = "M"+pts.map(p=>p.join(" ")).join(" L");
+  let doneRoute = "";
+  if(next>0){ const k=Math.min(next,ST.length-1); doneRoute = "M"+pts.slice(0,k+1).map(p=>p.join(" ")).join(" L"); }
+  const cur = next===0 ? [ST[0].x+70, ST[0].y-40] : pts[Math.min(next-1, ST.length-1)];
+  const mountains = (cx,cy,n)=>{ let s=""; for(let i=0;i<n;i++){const x=cx+i*34-(n*17), y=cy+(i%2?10:0); s+=`<path d="M${x-22} ${y+20} L${x} ${y-18} L${x+22} ${y+20} Z" fill="#B99863" stroke="#8B6C3E" stroke-width="2"/><path d="M${x-6} ${y-6} L${x} ${y-18} L${x+6} ${y-6} Z" fill="#FBF6EA"/>`;} return s; };
+  const cities = ST.map((s,i)=>{
+    const state = S.done.includes(i) ? "done" : (i===next ? "next" : "locked");
+    const fill = state==="done" ? "#38B2AC" : state==="next" ? "#E7B53C" : "#C8B48A";
+    const can = interactive && state==="next";
+    const lx = s.id==="khorezm"||s.id==="bukhara" ? s.x-26 : s.x+26;
+    const anchor = s.id==="khorezm"||s.id==="bukhara" ? "end" : "start";
+    const ly = s.id==="samarkand" ? s.y+44 : s.id==="bukhara" ? s.y+44 : s.y+8;
+    const lxx = s.id==="samarkand" ? s.x : s.id==="bukhara" ? s.x : lx;
+    const anc = s.id==="samarkand"||s.id==="bukhara" ? "middle" : anchor;
+    return `<g class="city" data-i="${i}" ${can?'role="button" tabindex="0"':'aria-disabled="true"'} aria-label="${t(s.name)} — ${t(state==="done"?UI.done:state==="next"?UI.next:UI.locked)}">
+      ${state==="next"?`<circle class="halo" cx="${s.x}" cy="${s.y}" r="26" fill="#E7B53C"/>`:""}
+      <circle class="ring" cx="${s.x}" cy="${s.y}" r="19" fill="${fill}" stroke="#2A1C0C" stroke-width="3"/>
+      ${state==="done"?`<path d="M${s.x-8} ${s.y} l6 6 l11 -12" fill="none" stroke="#2A1C0C" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>`:`<text x="${s.x}" y="${s.y+7}" text-anchor="middle" font-family="Rubik, Arial, sans-serif" font-weight="700" font-size="20" fill="#2A1C0C">${i+1}</text>`}
+      <text x="${lxx}" y="${ly}" text-anchor="${anc}" font-family="'Yeseva One', Georgia, serif" font-size="27" fill="#2A1C0C" stroke="#E8D6AB" stroke-width="6" paint-order="stroke">${t(s.name)}</text>
+    </g>`;
+  }).join("");
+  return `<svg viewBox="0 0 1000 560" role="img" aria-label="${t(UI.mapTitle)}">
+    <rect x="0" y="0" width="1000" height="560" rx="12" fill="#EEDFB8"/>
+    <rect x="10" y="10" width="980" height="540" rx="8" fill="none" stroke="#B99863" stroke-width="2" stroke-dasharray="2 8"/>
+    <ellipse cx="185" cy="105" rx="78" ry="58" fill="#8EC5C9" stroke="#5E9AA0" stroke-width="2"/>
+    <text x="185" y="112" text-anchor="middle" font-family="Rubik, Arial, sans-serif" font-size="18" font-style="italic" fill="#24585E">${t(UI.geo.aral)}</text>
+    <path d="M520 548 C430 505 300 470 245 380 S195 230 175 160" fill="none" stroke="#6FAFB5" stroke-width="7" stroke-linecap="round"/>
+    <text x="300" y="470" font-family="Rubik, Arial, sans-serif" font-size="18" font-style="italic" fill="#24585E" transform="rotate(25 300 470)">${t(UI.geo.amu)}</text>
+    <path d="M800 312 C700 290 650 262 590 228 S430 150 255 118" fill="none" stroke="#6FAFB5" stroke-width="7" stroke-linecap="round"/>
+    <text x="380" y="150" font-family="Rubik, Arial, sans-serif" font-size="18" font-style="italic" fill="#24585E" transform="rotate(12 380 150)">${t(UI.geo.syr)}</text>
+    ${mountains(840,250,5)}
+    <text x="820" y="300" text-anchor="middle" font-family="Rubik, Arial, sans-serif" font-size="17" font-weight="500" fill="#6B4E22" letter-spacing="3">${t(UI.geo.tian).toUpperCase()}</text>
+    ${mountains(690,460,4)}
+    <text x="680" y="510" text-anchor="middle" font-family="Rubik, Arial, sans-serif" font-size="17" font-weight="500" fill="#6B4E22" letter-spacing="3">${t(UI.geo.pamir).toUpperCase()}</text>
+    <path d="${route}" fill="none" stroke="#8B6C3E" stroke-width="5" stroke-dasharray="3 12" stroke-linecap="round" stroke-linejoin="round"/>
+    ${doneRoute?`<path d="${doneRoute}" fill="none" stroke="#1B3A68" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>`:""}
+    ${cities}
+    <g id="caravan" style="transform:translate(${cur[0]}px,${cur[1]}px)">
+      <g transform="translate(0,-46)">
+        <rect x="-3" y="-30" width="5" height="42" fill="#2A1C0C"/>
+        <path d="M2 -30 L32 -22 L2 -14 Z" fill="#1B3A68"/>
+      </g>
+    </g>
+    <text x="980" y="540" text-anchor="end" font-family="Rubik, Arial, sans-serif" font-size="15" fill="#6B4E22">${t(UI.mapNote)}</text>
+  </svg>`;
+}
+
+/* ---------- screens ---------- */
+function renderStart(){
+  main.innerHTML = `<section class="panel"><div class="start">
+    <div style="display:flex;flex-direction:column;gap:16px">
+      <p class="eyebrow">${t(UI.startEyebrow)}</p>
+      <h2>${t(UI.startTitle)}</h2>
+      <p class="intro">${t(UI.startIntro)}</p>
+      <p class="howto">${t(UI.howto)}</p>
+      <button class="btn gold" id="go" type="button">${t(UI.start)}</button>
+    </div>
+    <div class="art mapbox">${mapSVG(false)}</div>
+  </div></section>`;
+  $("#go").onclick = ()=>{ tone("ok"); S.screen="map"; render(); };
+}
+
+function renderMap(){
+  const next = S.done.length;
+  const all = next>=ST.length;
+  main.innerHTML = `<section class="panel">
+    <p class="eyebrow">${t(UI.mapEyebrow)}</p>
+    <h2>${all?t(UI.mapDone):t(UI.mapTitle)}</h2>
+    <div class="mapbox">${mapSVG(true)}</div>
+    <div class="stops">${ST.map((s,i)=>{
+      const st = S.done.includes(i)?"done":(i===next?"next":"locked");
+      return `<button class="stop ${st}" data-i="${i}" type="button" ${st!=="next"?"disabled":""}><span class="n">${i+1}</span><span>${t(s.name)}<small>${t(st==="done"?UI.done:st==="next"?UI.next:UI.locked)}</small></span></button>`;
+    }).join("")}</div>
+    ${all?`<button class="btn gold" id="toEnd" type="button">${t(UI.finish)}</button>`:""}
+  </section>`;
+  main.querySelectorAll('.city[role="button"], .stop.next').forEach(el=>{
+    const go=()=>openStation(+el.dataset.i);
+    el.addEventListener("click",go);
+    el.addEventListener("keydown",e=>{ if(e.key==="Enter"||e.key===" "){e.preventDefault();go();} });
+  });
+  if(all) $("#toEnd").onclick=()=>{ tone("win"); S.screen="end"; render(); };
+}
+
+function openStation(i){
+  const s = ST[i];
+  const st = {i, finished:false, score:0};
+  if(s.type==="timeline"){ st.order=shuffle([0,1,2,3]); st.placed=[]; st.wrong=0; st.flash=null; }
+  if(s.type==="mc"){ st.q=0; st.picked=null; st.optOrder = s.qs.map(()=>null); }
+  if(s.type==="match"){ st.sel=null; st.matched=[]; st.wrong=0; st.flash=null; st.left=shuffle(s.pairs.map((_,k)=>k)); st.right=shuffle(s.pairs.map((_,k)=>k)); }
+  if(s.type==="multi"){ st.sel=[]; st.checked=false; }
+  if(s.type==="trust"){ st.q=0; st.picked=null; }
+  S.st=st; S.screen="station"; tone("ok"); render();
+  window.scrollTo({top:0,behavior:"smooth"});
+}
+
+function head(s,i){
+  return `<p class="eyebrow">${t(UI.station)} ${i+1} / ${ST.length}</p>
+    <h2>${t(s.name)}</h2><p class="tag">${t(s.tag)}</p><p class="intro">${t(s.intro)}</p>`;
+}
+function resultBlock(s){
+  const last = S.done.length>=ST.length;
+  return `<div class="result" id="result" tabindex="-1">
+    <p class="earned">${t(UI.earned)} ${S.st.score}</p>
+    <p class="fact">${t(s.fact)}</p>
+    <button class="btn gold" id="back" type="button">${last?t(UI.finish):t(UI.backMap)}</button>
+  </div>`;
+}
+function finish(score){
+  const st=S.st; st.finished=true; st.score=Math.max(0,score);
+  S.coins+=st.score; if(!S.done.includes(st.i)) S.done.push(st.i);
+  tone("win"); render(); bumpCoins();
+  const r=$("#result"); if(r){ r.focus({preventScroll:true}); r.scrollIntoView({behavior:"smooth",block:"center"}); }
+}
+function wireBack(){
+  const b=$("#back"); if(!b) return;
+  b.onclick=()=>{ if(S.done.length>=ST.length){ S.screen="end"; tone("win"); } else S.screen="map"; render(); window.scrollTo({top:0,behavior:"smooth"}); };
+}
+
+function renderStation(){
+  const st=S.st, s=ST[st.i];
+  let body="";
+  if(s.type==="timeline") body=timeline(s,st);
+  if(s.type==="mc") body=mc(s,st);
+  if(s.type==="match") body=match(s,st);
+  if(s.type==="multi") body=multi(s,st);
+  if(s.type==="trust") body=trust(s,st);
+  main.innerHTML = `<section class="panel">${head(s,st.i)}${body}${st.finished?resultBlock(s):""}</section>`;
+  wire(s,st); wireBack();
+}
+
+/* timeline */
+function timeline(s,st){
+  const slots = s.items.map((it,k)=> st.placed[k]!==undefined
+    ? `<li><span class="date">${it.date}</span><span>${t(it)}</span></li>`
+    : `<li class="empty"><span class="date">${k+1}.</span><span>${t(UI.emptySlot)}</span></li>`).join("");
+  const rest = st.order.filter(k=>!st.placed.includes(k));
+  return `<p class="label">${t(UI.chronicle)}</p><ol class="chron">${slots}</ol>
+    ${rest.length?`<p class="label">${t(UI.scrolls)}</p>
+    <div class="opts">${rest.map(k=>`<button class="opt ${st.flash===k?"bad shake":""}" data-k="${k}" type="button">${st.flash===k?ICON_BAD:""}${t(s.items[k])}</button>`).join("")}</div>`:""}`;
+}
+/* multiple choice + riddles */
+function mc(s,st){
+  if(st.finished) return "";
+  const Q=s.qs[st.q];
+  const opts = s.riddle ? s.pool : Q.o;
+  const label = s.riddle?UI.riddle:UI.question;
+  const answered = st.picked!==null;
+  const ok = answered && st.picked===Q.a;
+  return `<p class="qcount">${t(label)} ${st.q+1} / ${s.qs.length}</p>
+    <p class="q">${t(Q.q)}</p>
+    <div class="opts">${opts.map((o,k)=>{
+      let cls=""; let ic="";
+      if(answered && k===Q.a){cls="ok";ic=ICON_OK;}
+      else if(answered && k===st.picked){cls="bad";ic=ICON_BAD;}
+      return `<button class="opt ${cls}" data-k="${k}" type="button" ${answered?"disabled":""}>${ic}${t(o)}</button>`;
+    }).join("")}</div>
+    ${answered?`<p class="feedback ${ok?"ok":"bad"}"><b>${t(ok?UI.correct:UI.wrong)}</b>${t(Q.e)}</p>
+    <button class="btn" id="nextQ" type="button">${t(UI.nextQ)}</button>`:""}`;
+}
+/* matching */
+function match(s,st){
+  const L = st.left.map(k=>{
+    const m=st.matched.includes(k);
+    const cls = m?"ok":(st.sel===k?"sel":"");
+    return `<button class="opt ${cls} ${st.flash&&st.flash[0]===k?"bad shake":""}" data-side="l" data-k="${k}" type="button" ${m?"disabled":""}>${m?ICON_OK:""}${t(s.pairs[k].r)}${m?` — ${t(s.pairs[k].t)}`:""}</button>`;
+  }).join("");
+  const R = st.right.map(k=>{
+    const m=st.matched.includes(k);
+    return `<button class="opt ${m?"ok":""} ${st.flash&&st.flash[1]===k?"bad shake":""}" data-side="r" data-k="${k}" type="button" ${m||st.sel===null?"disabled":""}>${m?ICON_OK:""}${t(s.pairs[k].t)}</button>`;
+  }).join("");
+  return `<p class="howto">${t(UI.matchHint)}</p>
+    <div class="match"><div><p class="label">${t(UI.regions)}</p>${L}</div><div><p class="label">${t(UI.titles)}</p>${R}</div></div>`;
+}
+/* multi select */
+function multi(s,st){
+  return `<p class="label">${t(UI.chooseAll)}</p>
+    <div class="opts">${s.opts.map((o,k)=>{
+      const on=st.sel.includes(k); let cls=on?"sel":""; let ic="";
+      if(st.checked){ if(o.ok){cls="ok";ic=ICON_OK;} else if(on){cls="bad";ic=ICON_BAD;} else cls=""; }
+      return `<button class="opt ${cls}" data-k="${k}" type="button" aria-pressed="${on}" ${st.checked?"disabled":""}>${ic}${t(o.t)}</button>`;
+    }).join("")}</div>
+    ${st.checked?"":`<button class="btn" id="checkMulti" type="button" ${st.sel.length?"":"disabled"}>${t(UI.check)}</button>`}`;
+}
+/* trust or verify */
+function trust(s,st){
+  if(st.finished) return "";
+  const C=s.claims[st.q];
+  const answered=st.picked!==null;
+  const right = answered && ((st.picked==="trust")===C.ok);
+  let msg="";
+  if(answered){
+    const head = st.picked==="trust" ? (C.ok?UI.trustOk:UI.trustBad) : (C.ok?UI.verifyBad:UI.verifyOk);
+    msg=`<p class="feedback ${right?"ok":"bad"}"><b>${t(head)}</b>${t(C.e)}</p><button class="btn" id="nextQ" type="button">${t(UI.nextQ)}</button>`;
+  }
+  return `<p class="qcount">${t(UI.claimN)} ${st.q+1} / ${s.claims.length}</p>
+    <div class="scroll"><p class="who">${t(UI.aiSays)}</p><p class="claim">“${t(C.c)}”</p></div>
+    <div class="tv">
+      <button class="btn trust" data-p="trust" type="button" ${answered?"disabled":""}>${ICON_OK}${t(UI.trust)}</button>
+      <button class="btn verify" data-p="verify" type="button" ${answered?"disabled":""}><svg class="mark" viewBox="0 0 24 24" aria-hidden="true"><circle cx="10" cy="10" r="7" fill="none" stroke="currentColor" stroke-width="3"/><path d="M15 15l6 6" stroke="currentColor" stroke-width="3" stroke-linecap="round"/></svg>${t(UI.verify)}</button>
+    </div>${msg}`;
+}
+
+function wire(s,st){
+  if(st.finished) return;
+  if(s.type==="timeline"){
+    main.querySelectorAll(".opt").forEach(b=>b.onclick=()=>{
+      const k=+b.dataset.k;
+      if(k===st.placed.length){ st.placed.push(k); st.flash=null; tone("ok");
+        if(st.placed.length===s.items.length){ return finish(40-st.wrong*5); } }
+      else { st.wrong++; st.flash=k; tone("bad"); }
+      renderStation();
+    });
+  }
+  if(s.type==="mc"){
+    main.querySelectorAll(".opt").forEach(b=>b.onclick=()=>{
+      st.picked=+b.dataset.k; const ok=st.picked===s.qs[st.q].a;
+      if(ok){ st.score+=10; } tone(ok?"ok":"bad"); renderStation();
+    });
+    const n=$("#nextQ"); if(n) n.onclick=()=>{
+      if(st.q<s.qs.length-1){ st.q++; st.picked=null; renderStation(); }
+      else finish(st.score);
+    };
+  }
+  if(s.type==="match"){
+    main.querySelectorAll('.opt[data-side="l"]').forEach(b=>b.onclick=()=>{ st.sel=+b.dataset.k; st.flash=null; renderStation(); });
+    main.querySelectorAll('.opt[data-side="r"]').forEach(b=>b.onclick=()=>{
+      const k=+b.dataset.k;
+      if(st.sel===null) return;
+      if(k===st.sel){ st.matched.push(k); st.sel=null; st.flash=null; tone("ok");
+        if(st.matched.length===s.pairs.length) return finish(50-st.wrong*5); }
+      else { st.wrong++; st.flash=[st.sel,k]; tone("bad"); }
+      renderStation();
+    });
+  }
+  if(s.type==="multi"){
+    main.querySelectorAll(".opt").forEach(b=>b.onclick=()=>{
+      const k=+b.dataset.k; const at=st.sel.indexOf(k);
+      if(at>=0) st.sel.splice(at,1); else st.sel.push(k);
+      renderStation();
+    });
+    const c=$("#checkMulti"); if(c) c.onclick=()=>{
+      st.checked=true;
+      let sc=0; st.sel.forEach(k=>{ sc += s.opts[k].ok ? 10 : -10; });
+      tone(sc>=40?"ok":"bad"); finish(sc);
+    };
+  }
+  if(s.type==="trust"){
+    main.querySelectorAll(".tv .btn").forEach(b=>b.onclick=()=>{
+      st.picked=b.dataset.p; const ok=(st.picked==="trust")===s.claims[st.q].ok;
+      if(ok) st.score+=10; tone(ok?"ok":"bad"); renderStation();
+    });
+    const n=$("#nextQ"); if(n) n.onclick=()=>{
+      if(st.q<s.claims.length-1){ st.q++; st.picked=null; renderStation(); }
+      else finish(st.score);
+    };
+  }
+}
+
+function renderEnd(){
+  const rank = UI.ranks.find(r=>S.coins>=r.min);
+  main.innerHTML = `<section class="panel end">
+    <p class="eyebrow">${t(UI.endEyebrow)}</p>
+    <h2>${t(UI.endTitle)}</h2>
+    <div class="mapbox" style="width:100%">${mapSVG(false)}</div>
+    <p class="big">${S.coins}</p>
+    <p class="intro">${t(UI.outOf)} ${MAX}</p>
+    <p class="rank">${t(rank)}</p>
+    <p class="motto">${t(UI.motto)}</p>
+    <button class="btn gold" id="again" type="button">${t(UI.playAgain)}</button>
+  </section>`;
+  $("#again").onclick=restart;
+}
+function restart(){ S.coins=0; S.done=[]; S.st=null; S.screen="start"; render(); window.scrollTo({top:0}); }
+
+$("#lang-en").onclick=()=>{ S.lang="en"; try{localStorage.setItem("src-lang-v2","en")}catch(e){} render(); };
+$("#lang-ru").onclick=()=>{ S.lang="ru"; try{localStorage.setItem("src-lang-v2","ru")}catch(e){} render(); };
+$("#soundBtn").onclick=()=>{ S.sound=!S.sound; chrome(); };
+$("#restartBtn").onclick=restart;
+try{ const l=localStorage.getItem("src-lang-v2"); if(l==="ru"||l==="en") S.lang=l; }catch(e){}
+render();
+</script>
+
+</html>
